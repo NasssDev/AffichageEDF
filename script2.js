@@ -4,12 +4,13 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const {exec} = require('child_process');
 
 
 const app = express();
 
 
-const storage = multer.diskStorage({
+const excelupload = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'excelupload/'); // définit le dossier de destination des fichiers
     },
@@ -19,9 +20,9 @@ const storage = multer.diskStorage({
     overwrite: true // active l'écrasement des fichiers avec le même nom
 });
 
-const upload = multer({storage: storage});
+const upload = multer({storage: excelupload});
 
-// on définit le dossier public pour les fichiers statiques
+// je défini le dossier public pour les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
@@ -29,47 +30,11 @@ app.get('/', (req, res) => {
 });
 
 app.post('/upload', upload.single('excelfile'), (req, res, next) => {
-    // TODO: gérer l'upload du fichier
-    // récupérer les données du fichier Excel envoyé dans la requête
-    let fileName = "";
-    let fileCounters = {};
-    let fileCountersBase = {};
-    let allInputsToFill = {};
-    let inputToFill = {
-        "DATE1": "",
-        "DATE2": "",
-        "DATE3": "",
-        "DATE4": "",
-        "HORAIRE1": "",
-        "HORAIRE2": "",
-        "HORAIRE3": "",
-        "HORAIRE4": "",
-        "NOM_PRENOM1": "",
-        "NOM_PRENOM2": "",
-        "NOM_PRENOM3": "",
-        "NOM_PRENOM4": "",
-        "REUNION1": "",
-        "REUNION2": "",
-        "REUNION3": "",
-        "REUNION4": "",
-        "CONTACT1": "",
-        "CONTACT2": "",
-        "CONTACT3": "",
-        "CONTACT4": "",
-    };
-    fs.readdir("./storage", (err, files) => {
-        if (err) throw err;
 
-        if (files.length === 0) {
-            console.log('Le répertoire est vide.');
-            return;
-        }
-        for (const file of files) {
-            fs.unlink(path.join("./storage", file), (err) => {
-                if (err) throw err;
-            });
-        }
-    });
+    let allInputsToFill = {};
+
+    deleteFiles();
+
     readXlsxFile('excelupload/affichage').then((rows) => {
 
         // Objet pour stocker les occurrences de fichiers PDF
@@ -83,11 +48,12 @@ app.post('/upload', upload.single('excelfile'), (req, res, next) => {
             let DATE;
             let ADMINAME;
             let CONTACT;
-            let HORAIRE;
 
+            let HORAIRE;
             // je retire tout ce qui ne m'intéresse pas dans la string fileName
             const regex = /CAP AMPERE-MUT-(.{7})/;
             let goodName = regex.exec(fileName);
+
             fileName = goodName[1];
 
             // je retire ce qui n'est pas utile dans la string adminName
@@ -105,43 +71,80 @@ app.post('/upload', upload.single('excelfile'), (req, res, next) => {
             // je vérifie si le fichier PDF existe déjà dans les occurrences
             if (fileOccurrences[fileName]) {
                 // Le fichier existe déjà, j'utilise le compteur actuel pour incrémenter les champs
-                DATE = `DATE${fileOccurrences[fileName]}`;
                 ADMINAME = `NOM_PRENOM${fileOccurrences[fileName]}`;
                 CONTACT = `CONTACT${fileOccurrences[fileName]}`;
                 HORAIRE = `HORAIRE${fileOccurrences[fileName]}`;
 
-                allInputsToFill[fileName][DATE] = dateOfMeeting;
                 allInputsToFill[fileName][ADMINAME] = adminName;
                 allInputsToFill[fileName][CONTACT] = adminName;
-                allInputsToFill[fileName][HORAIRE] = hoursBegin+":"+minutesBegin+"\n"+hoursEnd+":"+minutesEnd;
+                allInputsToFill[fileName][HORAIRE] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
                 fileOccurrences[fileName]++; // j'incrémente le compteur pour la prochaine occurrence
             } else {
                 allInputsToFill[fileName] = {};
                 allInputsToFill[fileName]["DATE1"] = dateOfMeeting;
                 allInputsToFill[fileName]["NOM_PRENOM1"] = adminName;
                 allInputsToFill[fileName]["CONTACT1"] = adminName;
-                allInputsToFill[fileName]["HORAIRE1"] = hoursBegin+":"+minutesBegin+"\n"+hoursEnd+":"+minutesEnd;
+                allInputsToFill[fileName]["HORAIRE1"] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
 
                 // Définit le compteur à 2 pour la prochaine occurrence
                 fileOccurrences[fileName] = 2;
             }
         });
-        Object.entries(allInputsToFill).forEach(([file, inputToFill]) => {
-            pdftk.input('./template/' + file + '.pdf')
+
+        async function handlePDF() {
+            let pdfToConcatenate = "";
+            const entries = Object.entries(allInputsToFill);
+            const totalIterations = entries.length;
+            let currentIteration = 0;
+            for (const [file, inputToFill] of entries) {
+                pdfToConcatenate += "storage/" + file + "_filled.pdf ";
+                currentIteration++;
+                await pdftk.input('./template/' + file + '.pdf')
                     .fillForm(inputToFill)
                     .output("./storage/" + file + "_filled.pdf")
-                    .then(buf => {
-                        let bro = buf;
-                        // res.type('application/pdf'); // If you omit this line, file will download
-                        // res.send(buf);
-                    })
                     .catch(next);
-        });
-        return;
-    });
-    //res.send(rows);
-});
 
+                if (currentIteration === totalIterations) {
+                    await new Promise((resolve, reject) => {
+                        exec("pdftk " + pdfToConcatenate + " template/G00-096_100.pdf cat output storage/Affichage.pdf", {shell: true}, (error, stdout, stderr) => {
+                            if (error) {
+                                console.error(`Erreur lors de l'exécution de la commande : ${error.message}`);
+                                return;
+                            }
+                            console.log('Commande exécutée avec succès.');
+                            resolve();
+                        })
+                    });
+                    res.setHeader('Content-Type', 'application/pdf');
+                    res.setHeader('Content-Disposition', 'inline; filename=Affichage.pdf');
+                    res.sendFile('storage/Affichage.pdf', { root: __dirname });
+                    deleteFiles("filled");
+                }
+            }
+            console.log("PASSSSSSSSSSSS");
+        }
+        handlePDF()
+
+
+    });
+});
+const deleteFiles = (includedStr = "") => {
+    fs.readdir("./storage", (err, files) => {
+        if (err) throw err;
+
+        if (files.length === 0) {
+            console.log('Le répertoire est vide.');
+        } else {
+            for (const file of files) {
+                if (file.includes(includedStr)) {
+                    fs.unlink(path.join("./storage", file), (err) => {
+                        if (err) throw err;
+                    });
+                }
+            }
+        }
+    });
+}
 app.listen(3000, () => {
     console.log('Le serveur est démarré sur le port 3000');
 });

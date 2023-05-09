@@ -1,10 +1,25 @@
+const form = document.querySelector('form');
+form.addEventListener('submit', (event) => {
+    const formData = new FormData(form);
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+});
 let inputexcelfile = document.getElementById("excelfile");
 let exceltable = document.getElementById("exceltable");
 inputexcelfile.addEventListener('change', (event) => {
-    const file = event.target.files[0];
 
+    const file = event.target.files[0];
+    console.log(file)
     readXlsxFile(file).then((rows) => {
-        console.log(rows);
         exceltable.innerHTML = "";
         rows.forEach((row) => {
             let tr = document.createElement('tr');
