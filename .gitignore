@@ -3,3 +3,4 @@ storage/*
 ~$infosAffichage.xlsx
 indexx.html
 backup.js
+package-lock.json
