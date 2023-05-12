@@ -148,5 +148,5 @@ const deleteFiles = (includedStr = "") => {
 
 const PORT = process.env.PORT || 3010
 app.listen(PORT, () => {
-    console.log(´Le serveur est démarré sur le port ${PORT}´);
+    console.log("Le serveur est démarré sur le port "+PORT);
 });
