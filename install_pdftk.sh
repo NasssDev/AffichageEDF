@@ -4,7 +4,7 @@
 wget https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/pdftk-2.02-1.debian-9.amd64.deb
 
 # Extrait les fichiers du paquet .deb
-ar -x pdftk-2.02-1.debian-9.amd64.deb
+tar -x pdftk-2.02-1.debian-9.amd64.deb
 
 # Extrai le fichier système
 tar -xvf data.tar.xz
