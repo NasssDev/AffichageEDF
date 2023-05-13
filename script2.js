@@ -115,6 +115,11 @@ app.post('/upload', upload.single('excelfile'), (req, res, next) => {
                             resolve();
                         })
                     });
+                    process.stdout.on('error', function( err ) {
+                        if (err.code == "EPIPE") {
+                            process.exit(0);
+                        }
+                    });
                     res.setHeader('Content-Type', 'application/pdf');
                     res.setHeader('Content-Disposition', 'inline; filename=Affichage.pdf');
                     res.sendFile('storage/Affichage.pdf', { root: __dirname });
@@ -145,11 +150,7 @@ const deleteFiles = (includedStr = "") => {
         }
     });
 }
-process.stdout.on('error', function( err ) {
-    if (err.code == "EPIPE") {
-        process.exit(0);
-    }
-});
+
 const PORT = process.env.PORT || 3010
 app.listen(PORT, () => {
     console.log("Le serveur est démarré sur le port "+PORT);
