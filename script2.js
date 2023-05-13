@@ -138,7 +138,7 @@ const deleteFiles = (includedStr = "") => {
             for (const file of files) {
                 if (file.includes(includedStr)) {
                     fs.unlink(path.join("./storage", file), (err) => {
-                        if (err) throw err;
+                        //if (err) throw err;
                     });
                 }
             }
