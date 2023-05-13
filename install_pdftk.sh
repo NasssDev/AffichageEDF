@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Télécharge le binaire pdftk précompilé
-wget https://www.pdflabs.com/tools/pdftk-the-pdf-toolkit/pdftk-2.02-1.debian-9.amd64.deb
+wget https://github.com/sumatrapdfreader/sumatrapdf/releases/download/3.3.3/PDFTK.zip
 
-# Extrait les fichiers du paquet .deb
-dpkg-deb -x pdftk-2.02-1.debian-9.amd64.deb pdftk-package
+# Extrait le contenu de l'archive
+unzip PDFTK.zip -d pdftk-package
 
 # Copie le binaire pdftk vers un emplacement accessible
-cp pdftk-package/usr/bin/pdftk ./bin/
+cp pdftk-package/pdftk/bin/pdftk ./bin/
 
 # Nettoyage des fichiers temporaires
-rm -rf pdftk-package pdftk-2.02-1.debian-9.amd64.deb
+rm -rf pdftk-package PDFTK.zip
 
 echo "pdftk a été installé avec succès."
