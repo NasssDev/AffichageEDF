@@ -145,7 +145,11 @@ const deleteFiles = (includedStr = "") => {
         }
     });
 }
-
+process.stdout.on('error', function( err ) {
+    if (err.code === "EPIPE") {
+        process.exit(0);
+    }
+});
 const PORT = process.env.PORT || 3010
 app.listen(PORT, () => {
     console.log("Le serveur est démarré sur le port "+PORT);
