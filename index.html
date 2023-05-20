@@ -14,62 +14,167 @@
 
 
 </body>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js"></script>
 <script>
-    const form = document.querySelector('form');
-    form.addEventListener('submit', (event) => {
-        const formData = new FormData(form);
-        fetch('/upload', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    });
     let inputexcelfile = document.getElementById("excelfile");
     let exceltable = document.getElementById("exceltable");
+    let allInputsToFill = {};
     inputexcelfile.addEventListener('change', (event) => {
 
         const file = event.target.files[0];
-        console.log(file)
+        //console.log(file)
+        // Objet pour stocker les occurrences de fichiers PDF
+        const fileOccurrences = {};
         readXlsxFile(file).then((rows) => {
-            console.log(rows)
+            //console.log(rows)
             exceltable.innerHTML = "";
-            rows.forEach((row) => {
-                let tr = document.createElement('tr');
-                row.forEach((cell) => {
+            rows.shift();
+            rows.forEach(([fileName, adminName, timeToStart, timeToFinish]) => {
+                let DATE;
+                let ADMINAME;
+                let CONTACT;
+                let HORAIRE;
+                // je retire tout ce qui ne m'intéresse pas dans la string fileName
+                const regex = /CAP AMPERE-MUT-(.{7})/;
+                let goodName = regex.exec(fileName);
+                console.log(goodName)
+                fileName = goodName[1];
 
-                    const td = document.createElement('td');
-                    if (Object.prototype.toString.call(cell) === '[object Date]') {
-                        const date = cell;
-                        //const hours = date.getUTCHours().toString().padStart(2, "0");
-                        //const minutes = date.getUTCMinutes().toString().padStart(2, "0");
-                        const offset = date.getTimezoneOffset();
-                        offset === -60 ? date.setHours(date.getHours() + 11) : date.setHours(date.getHours() + 10);
-                        const options = {
-                            timeZone: "Europe/Paris",
-                            hour12: false,
-                            hour: "2-digit",
-                            minute: "2-digit"
-                        };
-                        td.textContent = date.toLocaleString("fr-FR", options);
-                    }else{
-                        const regex = /CAP AMPERE-MUT-(.{7})/;
-                        const result = regex.exec(cell);
+                // je retire ce qui n'est pas utile dans la string adminName
+                if (adminName.includes(" - externe")) adminName = adminName.replace(" - externe", "");
+                // je fais un saut de ligne entre le nom et le prenom
+                if (adminName.includes(" ")) adminName = adminName.replace(" ", "\n");
 
-                        if (cell.includes(" - externe")) {
-                            cell = cell.replace(" - externe", "");
-                        }
-                        result ? td.textContent = result[1] : td.textContent = cell
-                    }
-                    tr.appendChild(td);
-                })
-                exceltable.appendChild(tr);
+                // je formatte l'heure comme il faut
+                const hoursBegin = timeToStart.getUTCHours().toString().padStart(2, "0");
+                const minutesBegin = timeToStart.getUTCMinutes().toString().padStart(2, "0");
+                const hoursEnd = timeToFinish.getUTCHours().toString().padStart(2, "0");
+                const minutesEnd = timeToFinish.getUTCMinutes().toString().padStart(2, "0");
+                // je récupère simplement le jour et le mois dans le format FR
+                const dateOfMeeting = timeToStart.toLocaleDateString("fr-FR", {month: "2-digit", day: "2-digit"})
+                // je vérifie si le fichier PDF existe déjà dans les occurrences
+                if (fileOccurrences[fileName]) {
+                    // Le fichier existe déjà, j'utilise le compteur actuel pour incrémenter les champs
+                    ADMINAME = `NOM_PRENOM${fileOccurrences[fileName]}`;
+                    CONTACT = `CONTACT${fileOccurrences[fileName]}`;
+                    HORAIRE = `HORAIRE${fileOccurrences[fileName]}`;
+
+                    allInputsToFill[fileName][ADMINAME] = adminName;
+                    allInputsToFill[fileName][CONTACT] = adminName;
+                    allInputsToFill[fileName][HORAIRE] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
+                    fileOccurrences[fileName]++; // j'incrémente le compteur pour la prochaine occurrence
+                } else {
+                    allInputsToFill[fileName] = {};
+                    allInputsToFill[fileName]["DATE1"] = dateOfMeeting;
+                    allInputsToFill[fileName]["NOM_PRENOM1"] = adminName;
+                    allInputsToFill[fileName]["CONTACT1"] = adminName;
+                    allInputsToFill[fileName]["HORAIRE1"] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
+
+                    // Définit le compteur à 2 pour la prochaine occurrence
+                    fileOccurrences[fileName] = 2;
+                }
+                // let tr = document.createElement('tr');
+                //
+                //     const td = document.createElement('td');
+                //         const date = timeToStart;
+                //         //const hours = date.getUTCHours().toString().padStart(2, "0");
+                //         //const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+                //         const offset = date.getTimezoneOffset();
+                //         offset === -60 ? date.setHours(date.getHours() + 11) : date.setHours(date.getHours() + 10);
+                //         const options = {
+                //             timeZone: "Europe/Paris",
+                //             hour12: false,
+                //             hour: "2-digit",
+                //             minute: "2-digit"
+                //         };
+                //         td.textContent = date.toLocaleString("fr-FR", options);
+                //
+                //         const regex = /CAP AMPERE-MUT-(.{7})/;
+                //         const result = regex.exec(cell);
+                //
+                //         if (cell.includes(" - externe")) {
+                //             cell = cell.replace(" - externe", "");
+                //         }
+                //         result ? td.textContent = result[1] : td.textContent = cell
+                //
+                //     tr.appendChild(td);
+                // exceltable.appendChild(tr);
             })
+            async function loadTemplatePDF(templateName) {
+                const response = await fetch(`templates/${templateName}.pdf`);
+                const pdfBytes = await response.arrayBuffer();
+
+                const pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+
+                // Faites des manipulations supplémentaires sur le document PDF ici si nécessaire
+
+                return pdfDoc;
+            }
+            loadTemplatePDF("A00-040")
+            async function handlePDF() {
+                let pdfToConcatenate = "";
+                const entries = Object.entries(allInputsToFill);
+                const totalIterations = entries.length;
+                let currentIteration = 0;
+
+                for (const [file, inputToFill] of entries) {
+                    pdfToConcatenate += "storage/" + file + "_filled.pdf ";
+                    currentIteration++;
+
+                    const templatePdfUrl = './template/' + file + '.pdf';
+                    const outputPdfPath = "./storage/" + file + "_filled.pdf";
+
+                    try {
+                        const existingPdfBytes = await fetch(templatePdfUrl).then(res => res.arrayBuffer());
+                        const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+                        const form = pdfDoc.getForm();
+
+                        Object.entries(inputToFill).forEach(([fieldName, fieldValue]) => {
+                            const field = form.getTextField(fieldName);
+                            if (field) {
+                                field.setText(fieldValue);
+                            }
+                        });
+
+                        const modifiedPdfBytes = await pdfDoc.save();
+                        const modifiedPdfDataUri = 'data:application/pdf;base64,' + btoa(String.fromCharCode(...new Uint8Array(modifiedPdfBytes)));
+
+                        await fetch(modifiedPdfDataUri).then(res => res.blob())
+                            .then(blob => {
+                                const file = new File([blob], file + '_filled.pdf', { type: 'application/pdf' });
+                                const formData = new FormData();
+                                formData.append('file', file);
+
+                                return fetch('/savepdf', {
+                                    method: 'POST',
+                                    body: formData,
+                                });
+                            });
+
+                        if (currentIteration === totalIterations) {
+                            await new Promise((resolve, reject) => {
+                                const command = "pdftk " + pdfToConcatenate + " template/G00-096_100.pdf cat output storage/Affichage.pdf";
+                                exec(command, { shell: true }, (error, stdout, stderr) => {
+                                    if (error) {
+                                        console.error(`Erreur lors de l'exécution de la commande : ${error.message}`);
+                                        reject(error);
+                                        return;
+                                    }
+                                    console.log('Commande exécutée avec succès.');
+                                    resolve();
+                                });
+                            });
+
+                            window.location.href = '/downloadpdf';
+                            deleteFiles("filled");
+                        }
+                    } catch (error) {
+                        console.error('Une erreur s\'est produite :', error);
+                        // Gérer l'erreur
+                    }
+                }
+            }
+            //handlePDF();
         })
     })
 </script>

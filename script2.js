@@ -48,7 +48,6 @@ app.post('/upload', upload.single('excelfile'), (req, res, next) => {
             let DATE;
             let ADMINAME;
             let CONTACT;
-
             let HORAIRE;
             // je retire tout ce qui ne m'intéresse pas dans la string fileName
             const regex = /CAP AMPERE-MUT-(.{7})/;
