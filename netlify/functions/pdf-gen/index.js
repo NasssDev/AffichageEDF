@@ -1,18 +1,21 @@
 const pdftk = require("node-pdftk");
 const {exec} = require("child_process");
-const res = require("express/lib/response");
-//const {deleteFiles} = require("../../../script2");
 
+process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT'] + '/bin';
+process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/bin';
 
-exports.handler = async function (event, context) {
-    /**/
-    //console.log(event.body);
+exports.handler = function (event, context) {
+    exec('pdftk --version', context.done);
+    return {
+        statusCode: 200,
+        message: "roooo"
+    };
+}
 
-    // Code susceptible de générer une erreur
+/*exports.handler = async function (event, context) {
+
     const allInputsToFill = JSON.parse(event.body);
     console.log(allInputsToFill);
-    // Autres opérations qui pourraient générer des erreurs
-
 
     let pdfToConcatenate = "";
     const entries = Object.entries(allInputsToFill);
@@ -22,9 +25,9 @@ exports.handler = async function (event, context) {
         for (const [file, inputToFill] of entries) {
             pdfToConcatenate += "storage/" + file + "_filled.pdf ";
             currentIteration++;
-            await pdftk.input('./template/' + file + '.pdf')
+            await pdftk.input('template/' + file + '.pdf')
                 .fillForm(inputToFill)
-                .output("./storage/" + file + "_filled.pdf")
+                .output("storage/" + file + "_filled.pdf")
                 .catch(error => {
                     console.error(error);
                 });
@@ -47,8 +50,6 @@ exports.handler = async function (event, context) {
         console.error('Une erreur s\'est produite :', error);
         // Autres actions à prendre en cas d'erreur
     }
-    console.log("PASSSSSSSSSSSS");
-
 
     const fs = require('fs');
     const path = require('path');
@@ -68,5 +69,4 @@ exports.handler = async function (event, context) {
             isBase64Encoded: true
         };
     }
-
-}
+}*/
