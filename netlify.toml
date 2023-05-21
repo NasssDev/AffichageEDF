@@ -1,2 +1,2 @@
 [build]
-command = "./netlify.sh"
+command = "./movebinaries.sh"
