@@ -1,6 +1,0 @@
-[[plugins]]
-  package = "@netlify/plugin-functions-install-binaries"
-
-  [plugins.inputs]
-    from = "pdf-gen/bin"
-    to = "src/bin"
