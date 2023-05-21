@@ -5,7 +5,7 @@
     <title>Upload Excel</title>
 </head>
 <body>
-<form method="POST" action="/upload" enctype="multipart/form-data">
+<form method="POST" action="http://localhost:3010/upload" enctype="multipart/form-data">
     <input type="file" name="excelfile" id="excelfile">
     <input type="submit" value="Envoyer">
 </form>
@@ -15,10 +15,10 @@
 
 </body>
 <script>
-    const form = document.querySelector('form');
+    /*const form = document.querySelector('form');
     form.addEventListener('submit', (event) => {
         const formData = new FormData(form);
-        fetch('/upload', {
+        fetch('/.netlify', {
             method: 'POST',
             body: formData
         })
@@ -29,15 +29,94 @@
             .catch(error => {
                 console.error(error);
             });
-    });
+    });*/
+
+
+
+
     let inputexcelfile = document.getElementById("excelfile");
     let exceltable = document.getElementById("exceltable");
     inputexcelfile.addEventListener('change', (event) => {
 
         const file = event.target.files[0];
         console.log(file)
+        let allInputsToFill = {};
         readXlsxFile(file).then((rows) => {
-            console.log(rows)
+            const fileOccurrences = {};
+            // je retire la première occurence qui ne sont que les en-têtes du excel
+            rows.shift();
+
+            rows.forEach(([fileName, adminName, timeToStart, timeToFinish]) => {
+                //console.log(fileName+" "+adminName+" "+timeToStart+" "+timeToFinish)
+                let DATE;
+                let ADMINAME;
+                let CONTACT;
+
+                let HORAIRE;
+                // je retire tout ce qui ne m'intéresse pas dans la string fileName
+                const regex = /CAP AMPERE-MUT-(.{7})/;
+                let goodName = regex.exec(fileName);
+
+                fileName = goodName[1];
+
+                // je retire ce qui n'est pas utile dans la string adminName
+                if (adminName.includes(" - externe")) adminName = adminName.replace(" - externe", "");
+                // je fais un saut de ligne entre le nom et le prenom
+                if (adminName.includes(" ")) adminName = adminName.replace(" ", "\n");
+
+                // je formatte l'heure comme il faut
+                const hoursBegin = timeToStart.getUTCHours().toString().padStart(2, "0");
+                const minutesBegin = timeToStart.getUTCMinutes().toString().padStart(2, "0");
+                const hoursEnd = timeToFinish.getUTCHours().toString().padStart(2, "0");
+                const minutesEnd = timeToFinish.getUTCMinutes().toString().padStart(2, "0");
+
+
+
+                // je récupère simplement le jour et le mois dans le format FR
+                const dateOfMeeting = timeToStart.toLocaleDateString("fr-FR", {month: "2-digit", day: "2-digit"})
+                // je vérifie si le fichier PDF existe déjà dans les occurrences
+                if (fileOccurrences[fileName]) {
+                    // Le fichier existe déjà, j'utilise le compteur actuel pour incrémenter les champs
+                    ADMINAME = `NOM_PRENOM${fileOccurrences[fileName]}`;
+                    CONTACT = `CONTACT${fileOccurrences[fileName]}`;
+                    HORAIRE = `HORAIRE${fileOccurrences[fileName]}`;
+
+                    allInputsToFill[fileName][ADMINAME] = adminName;
+                    allInputsToFill[fileName][CONTACT] = adminName;
+                    allInputsToFill[fileName][HORAIRE] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
+                    fileOccurrences[fileName]++; // j'incrémente le compteur pour la prochaine occurrence
+                } else {
+                    allInputsToFill[fileName] = {};
+                    allInputsToFill[fileName]["DATE1"] = dateOfMeeting;
+                    allInputsToFill[fileName]["NOM_PRENOM1"] = adminName;
+                    allInputsToFill[fileName]["CONTACT1"] = adminName;
+                    allInputsToFill[fileName]["HORAIRE1"] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
+
+                    // Définit le compteur à 2 pour la prochaine occurrence
+                    fileOccurrences[fileName] = 2;
+                }
+            });
+            console.log(JSON.stringify(allInputsToFill));
+            fetch('/.netlify/functions/pdf-gen', {
+                method: 'POST',
+                headers: {'Content-Type' : 'application/json'},
+                body: JSON.stringify(allInputsToFill)
+            })
+                //.then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+
+
+
+
+
+
+
+            console.log(allInputsToFill)
             exceltable.innerHTML = "";
             rows.forEach((row) => {
                 let tr = document.createElement('tr');

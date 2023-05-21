@@ -4,7 +4,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const {exec} = require('child_process');
+const axios = require('axios');
+//const {exec} = require('child_process');
 
 
 const app = express();
@@ -91,7 +92,7 @@ app.post('/upload', upload.single('excelfile'), (req, res, next) => {
             }
         });
 
-        async function handlePDF() {
+        /*async function handlePDF() {
             let pdfToConcatenate = "";
             const entries = Object.entries(allInputsToFill);
             const totalIterations = entries.length;
@@ -123,8 +124,40 @@ app.post('/upload', upload.single('excelfile'), (req, res, next) => {
             }
             console.log("PASSSSSSSSSSSS");
         }
-        handlePDF()
+        handlePDF()*/
+        const token = "ChPbbc52guiUccC33KrZjareXmyaM_QrBt90ybFpZHE";
+        callNetlifyFunction()
+        async function callNetlifyFunction() {
+            try {
+                // Remplacez <YOUR_FUNCTION_NAME> par le nom de votre fonction serverless Netlify
+                const functionName = 'pdf-gen';
 
+                const response = await axios.post(`https://api.netlify.com/api/v1/sites/affichage-edf/functions/${functionName}`, {
+                    body : JSON.stringify({ allInputsToFill })
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                // Vérifiez la réponse de l'appel à la fonction Netlify
+                if (response.status === 200) {
+                    console.log('Fonction Netlify appelée avec succès.');
+                } else {
+                    console.error('Erreur lors de l\'appel à la fonction Netlify.');
+                }
+            } catch (error) {
+                console.error('Une erreur s\'est produite lors de l\'appel à la fonction Netlify.', error);
+            }
+        }
+        fetch('/.netlify/functions/pdf-gen', {
+            method: 'POST',
+            body: JSON.stringify({ allInputsToFill }),
+        })
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+            .catch((error) => console.error(error));
 
     });
 });
@@ -146,7 +179,7 @@ const deleteFiles = (includedStr = "") => {
     });
 }
 
-const PORT = process.env.PORT || 3010
+const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
     console.log("Le serveur est démarré sur le port "+PORT);
 });
