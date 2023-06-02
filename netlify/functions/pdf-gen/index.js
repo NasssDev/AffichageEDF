@@ -22,7 +22,8 @@ exports.handler = async function (event, context, callback) {
             objectToCat[count] = path.join(__dirname, file + "_filled.pdf")
             //pdfToConcatenate += "./storage/" + file + "_filled.pdf ";
             pdfToConcatenate += count+" ";
-            console.log(path.resolve(__dirname + '/template/' + file + '.pdf'));
+            if(fs.existsSync(path.resolve(__dirname + '/template/' + file + '.pdf'))) console.log(path.resolve(__dirname + '/template/' + file + '.pdf'));
+
             await pdftk.input(__dirname + '/template/' + file + '.pdf')
                 .fillForm(inputToFill)
                 .output(path.join(__dirname, file + "_filled.pdf"))
