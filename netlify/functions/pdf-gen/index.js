@@ -62,7 +62,7 @@ exports.handler = async function (event,context) {
         console.log(files[0],files[1]);
     })
     console.log(process.env['PATH'])
-    exec('pdftk --version', context.done)
+    exec(__dirname+'/bin/pdftk --version', context.done)
     return {
         headers: {
             'Content-Type': 'application/pdf'
