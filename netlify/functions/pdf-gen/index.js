@@ -6,7 +6,7 @@ const fs = require("fs");
 process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT'] + '/netlify/functions/pdf-gen/bin';
 process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/functions/pdf-gen/bin';
 
-exports.handler = async function (event, context, callback) {
+/*exports.handler = async function (event, context, callback) {
 
     const allInputsToFill = JSON.parse(event.body);
     let pdfToConcatenate = "";
@@ -50,5 +50,16 @@ exports.handler = async function (event, context, callback) {
         statusCode: 200,
         body: "fileContent",
     };*/
-    callback(null, response);
+    /*callback(null, response);
+}*/
+
+exports.handler = async function (event,context) {
+    execSync("pdftk --version")
+    return {
+        headers: {
+            'Content-Type': 'application/pdf'
+        },
+        statusCode: 200,
+            body: "fileContent",
+    }
 }
