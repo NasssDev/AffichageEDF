@@ -33,8 +33,8 @@ exports.handler = async function (event, context, callback) {
         }
         console.log(objectToCat, pdfToConcatenate)
 
-        await pdftk.input({A : path.resolve(__dirname + "/C02-010_filled.pdf"),
-        B : path.join(__dirname,'C05-010_filled.pdf')})
+        await pdftk.input({A : path.resolve(__dirname + "/template/C02-010.pdf"),
+        B : path.join(__dirname,'/template/C05-010.pdf')})
             .cat('A B')
             .output(path.join(__dirname,'affiche.pdf'))
             .then(buffer => {
