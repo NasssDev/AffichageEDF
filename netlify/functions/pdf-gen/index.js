@@ -10,11 +10,16 @@ exports.handler = async function (event, context, callback) {
 
     const allInputsToFill = JSON.parse(event.body);
     let pdfToConcatenate = "";
+    let objectToCat = {};
+    let count = 0;
     const entries = Object.entries(allInputsToFill);
 
     try {
         for (const [file, inputToFill] of entries) {
-            pdfToConcatenate += "./storage/" + file + "_filled.pdf ";
+            count ++;
+            objectToCat[count] = "./storage/" + file + "_filled.pdf "
+            //pdfToConcatenate += "./storage/" + file + "_filled.pdf ";
+            pdfToConcatenate += count+" ";
             await pdftk.input(__dirname + '/template/' + file + '.pdf')
                 .fillForm(inputToFill)
                 .output("./storage/" + file + "_filled.pdf")
@@ -22,8 +27,15 @@ exports.handler = async function (event, context, callback) {
                     console.error(error);
                 });
         }
+        await pdftk.input(objectToCat)
+            .cat(pdfToConcatenate)
+            .output('./storage/affiche.pdf')
+            .catch(err => {
+                console.log('erreur de concatenation',err);
+            });
+
         //await execSync('chmod -R 777 storage',{stdio:'inherit'});
-        await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ./storage/Affichage.pdf`, {stdio: 'inherit'});
+        //await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ./storage/Affichage.pdf`, {stdio: 'inherit'});
     } catch (error) {
         console.error('Une erreur s\'est produite :', error);
         const responseError = {
