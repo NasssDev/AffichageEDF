@@ -55,7 +55,11 @@ process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/fun
 
 exports.handler = async function (event,context) {
     fs.readdir(__dirname+"/bin", (err, files) => {
-        console.log(files);
+        if (err) {
+            console.error('Erreur lors de la lecture du répertoire :', err);
+            return;
+        }
+        console.log(files[0],files[1]);
     })
     console.log(process.env['PATH'])
     exec('pdftk --version', context.done)
