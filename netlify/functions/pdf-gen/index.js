@@ -18,21 +18,21 @@ exports.handler = async function (event, context, callback) {
     try {
         for (const [file, inputToFill] of entries) {
             count ++;
-            objectToCat[count] = "storage/" + file + "_filled.pdf "
+            objectToCat[count] = path.join(__dirname, file + "_filled.pdf")
             //pdfToConcatenate += "./storage/" + file + "_filled.pdf ";
             pdfToConcatenate += count+" ";
             await pdftk.input(__dirname + '/template/' + file + '.pdf')
                 .fillForm(inputToFill)
-                .output("./storage/" + file + "_filled.pdf")
+                .output(path.join(__dirname, file + "_filled.pdf"))
                 .catch(error => {
                     console.error(error);
                 });
         }
         console.log(objectToCat, pdfToConcatenate)
-        await pdftk.input({A : './storage/C02-010_filled.pdf',
-        B : './storage/C05-010_filled.pdf'})
+        await pdftk.input({A : path.join(__dirname,'C02-010_filled.pdf'),
+        B : path.join(__dirname,'C05-010_filled.pdf')})
             .cat('A B')
-            .output('./storage/affiche.pdf')
+            .output(path.join(__dirname,'affiche.pdf'))
             .then(buffer => {
                 const response = {
                     headers: {
