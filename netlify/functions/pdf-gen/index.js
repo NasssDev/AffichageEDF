@@ -54,6 +54,7 @@ process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/fun
 }*/
 
 exports.handler = async function (event,context) {
+    console.log('coucou')
     execSync("pdftk --version")
     return {
         headers: {
