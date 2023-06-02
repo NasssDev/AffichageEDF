@@ -56,7 +56,7 @@ process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/fun
 exports.handler = async function (event,context) {
     fs.readdir(__dirname+"/bin", (err, files) => {
         if (err) {
-            console.error('Erreur lors de la lecture du répertoire :', err);
+            console.log('Erreur lors de la lecture du répertoire :', err);
             return;
         }
         console.log(files[0],files[1]);
