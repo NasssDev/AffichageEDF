@@ -14,15 +14,15 @@ exports.handler = async function (event, context, callback) {
 
     try {
     for (const [file, inputToFill] of entries) {
-        pdfToConcatenate += "/netlify/functions/pdf-gen/storage/" + file + "_filled.pdf ";
-        await pdftk.input('/netlify/functions/pdf-gen/template/' + file + '.pdf')
+        pdfToConcatenate += __dirname+"/storage/" + file + "_filled.pdf ";
+        await pdftk.input(__dirname+'/template/' + file + '.pdf')
             .fillForm(inputToFill)
-            .output("./netlify/functions/pdf-gen/storage/" + file + "_filled.pdf")
+            .output(__dirname+"/storage/" + file + "_filled.pdf")
             .catch(error => {
                 console.error(error);
             });
     }
-        await execSync(`pdftk ${pdfToConcatenate} ./netlify/functions/pdf-gen/template/G00-096_100.pdf cat output ./netlify/functions/pdf-gen/storage/Affichage.pdf`);
+        await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ${__dirname}/storage/Affichage.pdf`);
     } catch (error) {
         console.error('Une erreur s\'est produite :', error);
         const responseError = {
@@ -35,20 +35,20 @@ exports.handler = async function (event, context, callback) {
     const filePath = path.join(__dirname, 'storage', 'Affichage.pdf');
     const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
 
-    /*const response = {
+    const response = {
         headers: {
             'Content-Type': 'application/pdf'
         },
         statusCode: 200,
         body: fileContent,
         isBase64Encoded: true
-    };*/
-    const response = {
+    };/**/
+    /*const response = {
         headers: {
             'Content-Type': 'application/pdf'
         },
         statusCode: 200,
         body: "fileContent",
-    };
+    };*/
     callback(null, response);
 }
