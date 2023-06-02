@@ -34,7 +34,7 @@ exports.handler = async function (event, context, callback) {
                     console.error(error);
                 });
         }
-        await execSync(__dirname + `/bin/pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ./storage/Affichage.pdf`, {stdio: 'inherit'});
+        await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ./storage/Affichage.pdf`, {stdio: 'inherit'});
     } catch (error) {
         console.error('Une erreur s\'est produite :', error);
         const responseError = {
@@ -44,8 +44,8 @@ exports.handler = async function (event, context, callback) {
         callback(responseError);
     }
 
-    const filePath = path.join(__dirname, 'storage', 'Affichage.pdf');
-    const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
+    const filePath = path.join('storage', 'Affichage.pdf');
+    const fileContent = fs.readFileSync('./storage/Affichage.pdf', {encoding: 'base64'});
 
     const response = {
         headers: {
