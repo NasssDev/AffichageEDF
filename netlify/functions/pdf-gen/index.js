@@ -17,7 +17,7 @@ exports.handler = async function (event, context, callback) {
     try {
         for (const [file, inputToFill] of entries) {
             count ++;
-            objectToCat[count] = "./storage/" + file + "_filled.pdf "
+            objectToCat[count] = "storage/" + file + "_filled.pdf "
             //pdfToConcatenate += "./storage/" + file + "_filled.pdf ";
             pdfToConcatenate += count+" ";
             await pdftk.input(__dirname + '/template/' + file + '.pdf')
@@ -27,8 +27,10 @@ exports.handler = async function (event, context, callback) {
                     console.error(error);
                 });
         }
-        await pdftk.input(objectToCat)
-            .cat(pdfToConcatenate)
+        console.log(objectToCat, pdfToConcatenate)
+        await pdftk.input({A : './storage/C02-010_filled.pdf',
+        B : './storage/C05-010_filled.pdf'})
+            .cat('A B')
             .output('./storage/affiche.pdf')
             .catch(err => {
                 console.log('erreur de concatenation',err);
@@ -46,7 +48,7 @@ exports.handler = async function (event, context, callback) {
     }
 
     const filePath = path.join('storage', 'Affichage.pdf');
-    const fileContent = fs.readFileSync('./storage/Affichage.pdf', {encoding: 'base64'});
+    const fileContent = fs.readFileSync('./storage/affiche.pdf', {encoding: 'base64'});
 
     const response = {
         headers: {
