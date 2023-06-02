@@ -1,5 +1,5 @@
 const pdftk = require("node-pdftk");
-const {execSync} = require("child_process");
+const {execSync, exec} = require("child_process");
 const path = require("path");
 const fs = require("fs");
 
@@ -55,7 +55,7 @@ process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/fun
 
 exports.handler = async function (event,context) {
     console.log('coucou')
-    execSync("pdftk --version")
+    exec('pdftk --version', context.done)
     return {
         headers: {
             'Content-Type': 'application/pdf'
