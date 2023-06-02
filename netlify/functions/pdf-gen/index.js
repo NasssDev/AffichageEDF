@@ -67,7 +67,7 @@ exports.handler = async function (event, context, callback) {
     }
 
     const filePath = path.join(__dirname,'affiche.pdf')
-    const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
+    //const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
     const pathToPDF = path.resolve(__dirname + "/template/C02-010.pdf");
     console.log(fs.existsSync(pathToPDF));
     const pdf = fs.readFileSync(pathToPDF, {encoding: 'base64'});
