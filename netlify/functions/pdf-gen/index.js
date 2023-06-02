@@ -35,13 +35,20 @@ exports.handler = async function (event, context, callback) {
     const filePath = path.join(__dirname, 'storage', 'Affichage.pdf');
     const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
 
-    const response = {
+    /*const response = {
         headers: {
             'Content-Type': 'application/pdf'
         },
         statusCode: 200,
         body: fileContent,
         isBase64Encoded: true
+    };*/
+    const response = {
+        headers: {
+            'Content-Type': 'application/pdf'
+        },
+        statusCode: 200,
+        body: "fileContent",
     };
     callback(null, response);
 }
