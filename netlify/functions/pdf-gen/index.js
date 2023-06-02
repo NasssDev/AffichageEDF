@@ -8,18 +8,6 @@ process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/fun
 
 exports.handler = async function (event, context, callback) {
 
-    if (!fs.existsSync('./storage')) {
-        fs.mkdir('./storage', (err) => {
-            if (err) {
-                console.error('Erreur lors de la création du répertoire :', err);
-            } else {
-                console.log('Répertoire créé avec succès !');
-            }
-        });
-    } else {
-        console.log('Le répertoire existe déjà. Aucune action nécessaire.');
-    }
-
     const allInputsToFill = JSON.parse(event.body);
     let pdfToConcatenate = "";
     const entries = Object.entries(allInputsToFill);
