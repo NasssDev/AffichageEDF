@@ -13,21 +13,21 @@ exports.handler = async function (event, context, callback) {
     const entries = Object.entries(allInputsToFill);
 
     try {
-    for (const [file, inputToFill] of entries) {
-        pdfToConcatenate += __dirname+"/storage/" + file + "_filled.pdf ";
-        await pdftk.input(__dirname+'/template/' + file + '.pdf')
-            .fillForm(inputToFill)
-            .output(__dirname+"/storage/" + file + "_filled.pdf")
-            .catch(error => {
-                console.error(error);
-            });
-    }
+        for (const [file, inputToFill] of entries) {
+            pdfToConcatenate += __dirname + "/storage/" + file + "_filled.pdf ";
+            await pdftk.input(__dirname + '/template/' + file + '.pdf')
+                .fillForm(inputToFill)
+                .output(__dirname + "/storage/" + file + "_filled.pdf")
+                .catch(error => {
+                    console.error(error);
+                });
+        }
         await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ${__dirname}/storage/Affichage.pdf`);
     } catch (error) {
         console.error('Une erreur s\'est produite :', error);
         const responseError = {
             statusCode: 500,
-            body: "Erreur lors de la génération du pdf !"
+            body: `Erreur lors de la génération du pdf ! : ${error}`
         }
         callback(responseError);
     }
