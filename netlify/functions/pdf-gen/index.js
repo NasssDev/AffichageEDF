@@ -2,6 +2,7 @@ const pdftk = require("node-pdftk");
 const {execSync, exec} = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const buffer = require("buffer");
 
 process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT'] + '/netlify/functions/pdf-gen/bin';
 process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/functions/pdf-gen/bin';
@@ -32,6 +33,17 @@ exports.handler = async function (event, context, callback) {
         B : './storage/C05-010_filled.pdf'})
             .cat('A B')
             .output('./storage/affiche.pdf')
+            .then(buffer => {
+                const response = {
+                    headers: {
+                        'Content-Type': 'application/pdf'
+                    },
+                    statusCode: 200,
+                    body: buffer.toString('base64'),
+                    isBase64Encoded: true
+                };
+                callback(null,response)
+            })
             .catch(err => {
                 console.log('erreur de concatenation',err);
             });
