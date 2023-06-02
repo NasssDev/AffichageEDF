@@ -54,8 +54,8 @@ process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/fun
 }*/
 
 exports.handler = async function (event,context) {
-    console.log(exec('pdftk --version', context.done))
-
+    console.log(process.env['PATH'])
+    exec('pdftk --version', context.done)
     return {
         headers: {
             'Content-Type': 'application/pdf'
