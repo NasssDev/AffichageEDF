@@ -1,72 +1,47 @@
 const pdftk = require("node-pdftk");
-const {exec} = require("child_process");
+const {execSync} = require("child_process");
+const path = require("path");
+const fs = require("fs");
 
-process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT'] + '/bin';
-process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/bin';
+process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT'] + '/netlify/functions/pdf-gen/bin';
+process.env['LD_LIBRARY_PATH'] = process.env['LAMBDA_TASK_ROOT'] + '/netlify/functions/pdf-gen/bin';
 
-exports.handler = function (event, context) {
-    exec('pdftk --version', context.done);
-    return {
-        statusCode: 200,
-        message: "roooo"
-    };
-}
-
-/*exports.handler = async function (event, context) {
+exports.handler = async function (event, context, callback) {
 
     const allInputsToFill = JSON.parse(event.body);
-    console.log(allInputsToFill);
-
     let pdfToConcatenate = "";
     const entries = Object.entries(allInputsToFill);
-    const totalIterations = entries.length;
-    let currentIteration = 0;
+
     try {
-        for (const [file, inputToFill] of entries) {
-            pdfToConcatenate += "storage/" + file + "_filled.pdf ";
-            currentIteration++;
-            await pdftk.input('template/' + file + '.pdf')
-                .fillForm(inputToFill)
-                .output("storage/" + file + "_filled.pdf")
-                .catch(error => {
-                    console.error(error);
-                });
-
-            if (currentIteration === totalIterations) {
-                await new Promise((resolve) => {
-                    exec("pdftk " + pdfToConcatenate + " template/G00-096_100.pdf cat output storage/Affichage.pdf", {shell: true}, (error, stdout, stderr) => {
-                        if (error) {
-                            console.error(`Erreur lors de l'exécution de la commande : ${error.message}`);
-                            return;
-                        }
-                        console.log('Commande exécutée avec succès.');
-                        resolve();
-                    })
-                });
-            }
-        }
+    for (const [file, inputToFill] of entries) {
+        pdfToConcatenate += "/netlify/functions/pdf-gen/storage/" + file + "_filled.pdf ";
+        await pdftk.input('/netlify/functions/pdf-gen/template/' + file + '.pdf')
+            .fillForm(inputToFill)
+            .output("./netlify/functions/pdf-gen/storage/" + file + "_filled.pdf")
+            .catch(error => {
+                console.error(error);
+            });
+    }
+        await execSync(`pdftk ${pdfToConcatenate} ./netlify/functions/pdf-gen/template/G00-096_100.pdf cat output ./netlify/functions/pdf-gen/storage/Affichage.pdf`);
     } catch (error) {
-        // Gestion de l'erreur
         console.error('Une erreur s\'est produite :', error);
-        // Autres actions à prendre en cas d'erreur
+        const responseError = {
+            statusCode: 500,
+            body: "Erreur lors de la génération du pdf !"
+        }
+        callback(responseError);
     }
 
-    const fs = require('fs');
-    const path = require('path');
-    servePDFFile();
+    const filePath = path.join(__dirname, 'storage', 'Affichage.pdf');
+    const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
 
-    function servePDFFile() {
-        const filePath = path.join(__dirname, 'storage', 'Affichage.pdf');
-        const fileContent = fs.readFileSync(filePath);
-
-        return {
-            statusCode: 200,
-            headers: {
-                'Content-Type': 'application/pdf',
-                'Content-Disposition': 'inline; filename=Affichage.pdf'
-            },
-            body: fileContent.toString('base64'),
-            isBase64Encoded: true
-        };
-    }
-}*/
+    const response = {
+        headers: {
+            'Content-Type': 'application/pdf'
+        },
+        statusCode: 200,
+        body: fileContent,
+        isBase64Encoded: true
+    };
+    callback(null, response);
+}

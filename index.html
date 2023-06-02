@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script type="text/javascript" src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js" defer></script>
+    <script type="text/javascript" src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"
+            defer></script>
     <title>Upload Excel</title>
 </head>
 <body>
 <form method="POST" action="http://localhost:3010/upload" enctype="multipart/form-data">
-    <input type="file" name="excelfile" id="excelfile">
+    <input type="file" name="excelfile" id="excelfile" accept=".xlsx">
     <input type="submit" value="Envoyer">
 </form>
 
@@ -32,16 +33,15 @@
     });*/
 
 
-
-
     let inputexcelfile = document.getElementById("excelfile");
     let exceltable = document.getElementById("exceltable");
+
     inputexcelfile.addEventListener('change', (event) => {
 
-        const file = event.target.files[0];
-        console.log(file)
         let allInputsToFill = {};
-        readXlsxFile(file).then((rows) => {
+
+        readXlsxFile(inputexcelfile.files[0]).then((rows) => {
+            console.log(rows)
             const fileOccurrences = {};
             // je retire la première occurence qui ne sont que les en-têtes du excel
             rows.shift();
@@ -64,13 +64,23 @@
                 // je fais un saut de ligne entre le nom et le prenom
                 if (adminName.includes(" ")) adminName = adminName.replace(" ", "\n");
 
+                // je vérifie si c'est heure d'été ou hiver (problème de formatage avec excel)
+                let offset = timeToStart.getTimezoneOffset();
+                offset === -60 ? timeToStart.setHours(timeToStart.getHours() + 11) : timeToStart.setHours(timeToStart.getHours() + 10);
+                offset = timeToFinish.getTimezoneOffset();
+                offset === -60 ? timeToFinish.setHours(timeToFinish.getHours() + 11) : timeToFinish.setHours(timeToFinish.getHours() + 10);
+
                 // je formatte l'heure comme il faut
-                const hoursBegin = timeToStart.getUTCHours().toString().padStart(2, "0");
-                const minutesBegin = timeToStart.getUTCMinutes().toString().padStart(2, "0");
-                const hoursEnd = timeToFinish.getUTCHours().toString().padStart(2, "0");
-                const minutesEnd = timeToFinish.getUTCMinutes().toString().padStart(2, "0");
+                const timeBegin = timeToStart.getHours().toString().padStart(2, "0") + ":" + timeToStart.getMinutes().toString().padStart(2, "0")
+                const timeEnd = timeToFinish.getHours().toString().padStart(2, "0") + ":" + timeToFinish.getMinutes().toString().padStart(2, "0")
 
-
+                //console.log(timeToStart.getHours().toString().padStart(2, "0")+":"+timeToStart.getMinutes().toString().padStart(2, "0"))
+                const options = {
+                    timeZone: "Europe/Paris",
+                    hour12: false,
+                    hour: "2-digit",
+                    minute: "2-digit"
+                };
 
                 // je récupère simplement le jour et le mois dans le format FR
                 const dateOfMeeting = timeToStart.toLocaleDateString("fr-FR", {month: "2-digit", day: "2-digit"})
@@ -83,40 +93,44 @@
 
                     allInputsToFill[fileName][ADMINAME] = adminName;
                     allInputsToFill[fileName][CONTACT] = adminName;
-                    allInputsToFill[fileName][HORAIRE] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
+                    allInputsToFill[fileName][HORAIRE] = timeBegin + "\n" + timeEnd;
                     fileOccurrences[fileName]++; // j'incrémente le compteur pour la prochaine occurrence
                 } else {
                     allInputsToFill[fileName] = {};
                     allInputsToFill[fileName]["DATE1"] = dateOfMeeting;
                     allInputsToFill[fileName]["NOM_PRENOM1"] = adminName;
                     allInputsToFill[fileName]["CONTACT1"] = adminName;
-                    allInputsToFill[fileName]["HORAIRE1"] = hoursBegin + ":" + minutesBegin + "\n" + hoursEnd + ":" + minutesEnd;
+                    allInputsToFill[fileName]["HORAIRE1"] = timeBegin + "\n" + timeEnd;
 
                     // Définit le compteur à 2 pour la prochaine occurrence
                     fileOccurrences[fileName] = 2;
                 }
             });
-            console.log(JSON.stringify(allInputsToFill));
+
+
             fetch('/.netlify/functions/pdf-gen', {
                 method: 'POST',
-                headers: {'Content-Type' : 'application/json'},
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(allInputsToFill)
             })
-                //.then(response => response.json())
-                .then(data => {
-                    console.log(data);
+                .then(response => response.blob())
+                .then(blob => {
+                    const fileURL = URL.createObjectURL(blob);
+                    window.open(fileURL);
                 })
+                .then(value =>
+                    fetch('/.netlify/functions/delete-file', {
+                        method: 'GET',
+                    })
+                        .catch(error => {
+                            console.error(error);
+                        }))
                 .catch(error => {
                     console.error(error);
                 });
 
 
-
-
-
-
-
-            console.log(allInputsToFill)
+            /*console.log(allInputsToFill)
             exceltable.innerHTML = "";
             rows.forEach((row) => {
                 let tr = document.createElement('tr');
@@ -148,7 +162,7 @@
                     tr.appendChild(td);
                 })
                 exceltable.appendChild(tr);
-            })
+            })*/
         })
     })
 </script>
