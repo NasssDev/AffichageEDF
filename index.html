@@ -120,13 +120,13 @@
                     const fileURL = URL.createObjectURL(blob);
                     window.open(fileURL);
                 })
-                /*.then(value =>
+                .then(() =>
                     fetch('/.netlify/functions/delete-file', {
                         method: 'GET',
                     })
                         .catch(error => {
                             console.error(error);
-                        }))*/
+                        }))
                 .catch(error => {
                     console.error(error);
                 });
