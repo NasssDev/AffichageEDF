@@ -47,8 +47,8 @@ exports.handler = async function (event, context, callback) {
         callback(responseError);
     }
 
-    const filePath = path.join('storage', 'Affichage.pdf');
-    const fileContent = fs.readFileSync('./storage/affiche.pdf', {encoding: 'base64'});
+    const filePath = path.join('storage', 'affiche.pdf');
+    const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
 
     const response = {
         headers: {
