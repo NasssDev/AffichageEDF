@@ -38,12 +38,15 @@ exports.handler = async function (event, context, callback) {
             .cat('A B')
             .output(path.join(__dirname,'affiche.pdf'))
             .then(buffer => {
+                const pathToPDF = path.resolve(__dirname + "/template/C02-010.pdf");
+                console.log(fs.existsSync(pathToPDF));
+                const pdf = fs.readFileSync(pathToPDF);
                 const response = {
                     headers: {
                         'Content-Type': 'application/pdf'
                     },
                     statusCode: 200,
-                    body: buffer.toString('base64'),
+                    body: pdf.toString('base64'),
                     isBase64Encoded: true
                 };
                 callback(null,response)
