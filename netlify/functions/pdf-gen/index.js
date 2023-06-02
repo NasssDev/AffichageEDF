@@ -34,7 +34,7 @@ exports.handler = async function (event, context, callback) {
                     console.error(error);
                 });
         }
-        await execSync('sudo chmod -R 777 ./storage',{stdio:'inherit'});
+        await execSync('chmod -R 777 ./storage',{stdio:'inherit'});
         await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ./storage/Affichage.pdf`, {stdio: 'inherit'});
     } catch (error) {
         console.error('Une erreur s\'est produite :', error);
