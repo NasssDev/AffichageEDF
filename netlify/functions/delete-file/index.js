@@ -12,13 +12,15 @@ exports.handler = async function (event, context, callback) {
 
             files.forEach(file => {
                 const filePath = `${directoryPath}/${file}`;
-                fs.unlink(filePath, err => {
-                    if (err) {
-                        console.error(`Erreur lors de la suppression du fichier ${filePath} :`, err);
-                    } else {
-                        console.log(`Fichier ${filePath} supprimé avec succès.`);
-                    }
-                });
+                if (file !== ".gitignore"){
+                    fs.unlink(filePath, err => {
+                        if (err) {
+                            console.error(`Erreur lors de la suppression du fichier ${filePath} :`, err);
+                        } else {
+                            console.log(`Fichier ${filePath} supprimé avec succès.`);
+                        }
+                    });
+                }
             });
         });
         const response = {
