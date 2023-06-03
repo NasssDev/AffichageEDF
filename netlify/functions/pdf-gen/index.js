@@ -49,6 +49,7 @@ exports.handler = async function (event, context, callback) {
                     body: buffer.toString('base64'),
                     isBase64Encoded: true
                 };
+                console.log(buffer.toString('base64'))
                 callback(null,response)
             })
             .catch(err => {
