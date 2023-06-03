@@ -36,7 +36,7 @@ exports.handler = async function (event, context, callback) {
         await pdftk.input({A : path.resolve(__dirname + "/template/C02-010.pdf"),
         B : path.join(__dirname,'/template/C05-010.pdf')})
             .cat('A B')
-            .output(path.join(__dirname,'affiche.pdf'))
+            .output('affiche.pdf')
             .then(buffer => {
                 const pathToPDF = path.resolve(__dirname + "/template/C02-010.pdf");
                 console.log(fs.existsSync(pathToPDF));
@@ -46,7 +46,7 @@ exports.handler = async function (event, context, callback) {
                         'Content-Type': 'application/pdf'
                     },
                     statusCode: 200,
-                    body: pdf.toString('base64'),
+                    body: buffer.toString('base64'),
                     isBase64Encoded: true
                 };
                 callback(null,response)
