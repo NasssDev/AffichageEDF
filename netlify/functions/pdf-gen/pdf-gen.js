@@ -20,13 +20,13 @@ exports.handler = async function (event, context, callback) {
         for (const [file, inputToFill] of entries) {
             count ++;
             objectToCat[count] = path.join(__dirname, file + "_filled.pdf")
-            //pdfToConcatenate += "./storage/" + file + "_filled.pdf ";
-            pdfToConcatenate += count+" ";
+            pdfToConcatenate += "/tmp/" + file + "_filled.pdf ";
+            //pdfToConcatenate += count+" ";
             if(fs.existsSync(path.resolve(__dirname + '/template/' + file + '.pdf'))) console.log(path.resolve(__dirname + '/template/' + file + '.pdf'));
 
             await pdftk.input(__dirname + '/template/' + file + '.pdf')
                 .fillForm(inputToFill)
-                .output(path.join(__dirname, file + "_filled.pdf"))
+                .output("/tmp/"+ file + "_filled.pdf")
                 .catch(error => {
                     console.error(error);
                 });
@@ -56,8 +56,7 @@ exports.handler = async function (event, context, callback) {
                 console.log('erreur de concatenation',err);
             });
 
-        //await execSync('chmod -R 777 storage',{stdio:'inherit'});
-        //await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output ./storage/Affichage.pdf`, {stdio: 'inherit'});
+        await execSync(`pdftk ${pdfToConcatenate} ${__dirname}/template/G00-096_100.pdf cat output /tmp/Affichage.pdf`, {stdio: 'inherit'});
     } catch (error) {
         console.error('Une erreur s\'est produite :', error);
         const responseError = {
@@ -67,7 +66,7 @@ exports.handler = async function (event, context, callback) {
         callback(responseError);
     }
 
-    const filePath = '/tmp/affiche.pdf';
+    const filePath = '/tmp/Affichage.pdf';
     //const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
     const pathToPDF = path.resolve(__dirname + "/template/C02-010.pdf");
     console.log(fs.existsSync(pathToPDF));
@@ -78,7 +77,7 @@ exports.handler = async function (event, context, callback) {
             'Content-Type': 'application/pdf'
         },
         statusCode: 200,
-        body: pdf.toString('base64'),
+        body: pdf,
         isBase64Encoded: true
     };
 
