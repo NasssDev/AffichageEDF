@@ -18,27 +18,11 @@
 
 </body>
 <script>
-    /*const form = document.querySelector('form');
-    form.addEventListener('submit', (event) => {
-        const formData = new FormData(form);
-        fetch('/.netlify', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-            })
-            .catch(error => {
-                console.error(error);
-            });
-    });*/
-
 
     let inputexcelfile = document.getElementById("excelfile");
     let exceltable = document.getElementById("exceltable");
 
-    inputexcelfile.addEventListener('change', (event) => {
+    inputexcelfile.addEventListener('change', () => {
 
         let allInputsToFill = {};
 
@@ -104,11 +88,10 @@
                     allInputsToFill[fileName]["CONTACT1"] = adminName;
                     allInputsToFill[fileName]["HORAIRE1"] = timeBegin + "\n" + timeEnd;
 
-                    // Définit le compteur à 2 pour la prochaine occurrence
+                    // je définis le compteur à 2 pour la prochaine occurrence
                     fileOccurrences[fileName] = 2;
                 }
             });
-
 
             fetch('/.netlify/functions/pdf-gen', {
                 method: 'POST',
@@ -120,19 +103,12 @@
                     const fileURL = URL.createObjectURL(blob);
                     window.open(fileURL);
                 })
-                .then(() =>
-                    fetch('/.netlify/functions/delete-file', {
-                        method: 'GET',
-                    })
-                        .catch(error => {
-                            console.error(error);
-                        }))
                 .catch(error => {
                     console.error(error);
                 });
 
 
-            /*console.log(allInputsToFill)
+            /*console.log(allInputsToFill)*/
             exceltable.innerHTML = "";
             rows.forEach((row) => {
                 let tr = document.createElement('tr');
@@ -164,7 +140,7 @@
                     tr.appendChild(td);
                 })
                 exceltable.appendChild(tr);
-            })*/
+            })
         })
     })
 </script>
