@@ -36,7 +36,7 @@ exports.handler = async function (event, context, callback) {
         await pdftk.input({A : path.resolve(__dirname + "/template/C02-010.pdf"),
         B : path.join(__dirname,'/template/C05-010.pdf')})
             .cat('A B')
-            .output(path.join(__dirname,'affiche.pdf'))
+            .output('/tmp/affiche.pdf')
             .then(buffer => {
                 const pathToPDF = path.resolve(__dirname + "/template/C02-010.pdf");
                 console.log(fs.existsSync(pathToPDF));
@@ -67,12 +67,12 @@ exports.handler = async function (event, context, callback) {
         callback(responseError);
     }
 
-    const filePath = path.join(__dirname,'affiche.pdf')
+    const filePath = '/tmp/affiche.pdf';
     //const fileContent = fs.readFileSync(filePath, {encoding: 'base64'});
     const pathToPDF = path.resolve(__dirname + "/template/C02-010.pdf");
     console.log(fs.existsSync(pathToPDF));
-    //const pdf = fs.readFileSync(pathToPDF, {encoding: 'base64'});
-    const pdf = require(path.join(__dirname,'affiche.pdf'))
+    const pdf = fs.readFileSync(filePath, {encoding: 'base64'});
+    //const pdf = require(path.join(__dirname,'affiche.pdf'))
     const response = {
         headers: {
             'Content-Type': 'application/pdf'
