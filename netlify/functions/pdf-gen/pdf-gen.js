@@ -72,7 +72,7 @@ exports.handler = async function (event, context, callback) {
     const pathToPDF = path.resolve(__dirname + "/template/C02-010.pdf");
     console.log(fs.existsSync(pathToPDF));
     //const pdf = fs.readFileSync(pathToPDF, {encoding: 'base64'});
-    const pdf = require(path.resolve(__dirname,'/affiche.pdf'))
+    const pdf = require(path.join(__dirname,'affiche.pdf'))
     const response = {
         headers: {
             'Content-Type': 'application/pdf'
