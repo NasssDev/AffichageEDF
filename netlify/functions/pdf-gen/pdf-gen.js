@@ -50,7 +50,7 @@ exports.handler = async function (event, context, callback) {
                     isBase64Encoded: true
                 };
                 console.log(buffer)
-                callback(null,response)
+                //callback(null,response)
             })
             .catch(err => {
                 console.log('erreur de concatenation',err);
