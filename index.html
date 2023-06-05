@@ -8,7 +8,7 @@
 <body>
 <div>
     <input type="file" name="excelfile" id="excelfile" accept=".xlsx">
-    <input type="submit" value="Envoyer">
+    <input type="reset" value="reset">
 </div>
 
 
@@ -33,12 +33,10 @@
             rows.shift();
 
             rows.forEach(([fileName, adminName, timeToStart, timeToFinish]) => {
-                //console.log(fileName+" "+adminName+" "+timeToStart+" "+timeToFinish)
-                let DATE;
                 let ADMINAME;
                 let CONTACT;
-
                 let HORAIRE;
+
                 // je retire tout ce qui ne m'intéresse pas dans la string fileName
                 const regex = /CAP AMPERE-MUT-(.{7})/;
                 let goodName = regex.exec(fileName);
@@ -59,14 +57,6 @@
                 // je formatte l'heure comme il faut
                 const timeBegin = timeToStart.getHours().toString().padStart(2, "0") + ":" + timeToStart.getMinutes().toString().padStart(2, "0")
                 const timeEnd = timeToFinish.getHours().toString().padStart(2, "0") + ":" + timeToFinish.getMinutes().toString().padStart(2, "0")
-
-                //console.log(timeToStart.getHours().toString().padStart(2, "0")+":"+timeToStart.getMinutes().toString().padStart(2, "0"))
-                const options = {
-                    timeZone: "Europe/Paris",
-                    hour12: false,
-                    hour: "2-digit",
-                    minute: "2-digit"
-                };
 
                 // je récupère simplement le jour et le mois dans le format FR
                 const dateOfMeeting = timeToStart.toLocaleDateString("fr-FR", {month: "2-digit", day: "2-digit"})
@@ -107,13 +97,12 @@
                     console.error(error);
                 });
 
-
-            /*console.log(allInputsToFill)*/
+            /**/
+            console.log(allInputsToFill)
             exceltable.innerHTML = "";
             rows.forEach((row) => {
                 let tr = document.createElement('tr');
                 row.forEach((cell) => {
-
                     const td = document.createElement('td');
                     if (Object.prototype.toString.call(cell) === '[object Date]') {
                         const date = cell;
@@ -127,7 +116,7 @@
                             hour: "2-digit",
                             minute: "2-digit"
                         };
-                        td.textContent = date.toLocaleString("fr-FR", options);
+                        td.textContent = date.toLocaleTimeString("fr-FR", options);
                     }else{
                         const regex = /CAP AMPERE-MUT-(.{7})/;
                         const result = regex.exec(cell);
