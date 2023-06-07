@@ -8,23 +8,38 @@
 <body>
 <div>
     <input type="file" name="excelfile" id="excelfile" accept=".xlsx">
-    <input type="reset" value="reset">
+    <button type="button" id="demo">Cliquez pour une demo !</button>
 </div>
 
 <table id="exceltable"></table>
 
 </body>
 <script>
+    document.getElementById('demo').addEventListener('click',() =>{
+        fetch('./excelupload/demoAffichage.xlsx')
+            .then(response => response.blob())
+            .then(blob => {
+                const demoFile = new File([blob], 'demoAffichage.xlsx');
+                console.log(demoFile);
+                generatePdf(demoFile);
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement du fichier Excel :', error);
+            });
+    })
 
-    let inputexcelfile = document.getElementById("excelfile");
-    let exceltable = document.getElementById("exceltable");
+    const inputexcelfile = document.getElementById("excelfile");
+    const exceltable = document.getElementById("exceltable");
 
     inputexcelfile.addEventListener('change', () => {
+        generatePdf(inputexcelfile.files[0])
+    })
+    const generatePdf = (fileToRead) => {
 
         let allInputsToFill = {};
         exceltable.innerHTML = "";
 
-        readXlsxFile(inputexcelfile.files[0]).then((rows) => {
+        readXlsxFile(fileToRead).then((rows) => {
 
             const fileOccurrences = {};
 
@@ -131,6 +146,7 @@
                     console.error(error);
                 });
         })
-    })
+    }
+
 </script>
 </html>
