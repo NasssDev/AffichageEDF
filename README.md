@@ -31,8 +31,8 @@ Ensuite executez la commande ``netlify dev``.
 
 
 * JavaScript
-* [node-pdftk](https://www.npmjs.com/package/node-pdftk)
-* [read-excel-file](https://www.npmjs.com/package/read-excel-file?activeTab=readme)
+* [node-pdftk](https://www.npmjs.com/package/node-pdftk) - librairie
+* [read-excel-file](https://www.npmjs.com/package/read-excel-file?activeTab=readme) - librairie
 * [Netlify](https://www.netlify.com/products/functions/) - Serverless functions
 * [WebStorm](https://www.jetbrains.com/fr-fr/webstorm/download/) - Editeur de textes
 
