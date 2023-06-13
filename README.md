@@ -8,7 +8,7 @@ Cela prennait beaucoup trop de temps et n'était pas pratique du tout, la premi�
 
 ## Pour commencer
 
-Vous pouvez clonner le projet ou bien le tester directement [en cliquant ici](https://affichage-edf.netlify.app/).
+Vous pouvez clonner le projet ou bien le tester directement [https://affichage-edf.netlify.app/](https://affichage-edf.netlify.app/).
 
 1- Vous ne possédez pas de fichier excel valide, donc vous pouvez simplement cliquer sur le bouton "cliquez pour une demo !", vous pouvez également télécharger le fichier et l'upload ensuite. ( notez que les infos sur le fichier sont factices ).
 
@@ -38,13 +38,9 @@ Ensuite executez la commande ``netlify dev``.
 
 
 ## Versions
-**Dernière version stable :** 1 seule version sur la branche netlify-fonction
+**Dernière version stable :** 1 seule version 
 
 
 
 ## Auteurs
 * **Nassim** _alias_ [@NasssDev](https://github.com/NasssDev?tab=repositories)
-
-
-
-
