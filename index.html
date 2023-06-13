@@ -3,24 +3,142 @@
 <head>
     <script type="text/javascript" src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"
             defer></script>
-    <title>Upload Excel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./CSS/style.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 </head>
 <body>
-<div>
-    <input type="file" name="excelfile" id="excelfile" accept=".xlsx">
-    <button type="button" id="demo">Cliquez pour une demo !</button>
+
+<nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="images/Affichage-logo.png" alt="Logo" class="d-inline-block align-text-top">
+        </a>
+        <span class="text-black navbar-text">En quelques secondes... <span
+                class="gradient-text">L'AFFICHAGE</span></span>
+        <div class="dropdown">
+            <a class="btn btn-outline-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+               aria-expanded="false">
+                Options
+            </a>
+
+            <ul class="dropdown-menu" style="right: 0; left: auto;">
+                <li>
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        Visualiser le fichier
+                    </button>
+                </li>
+                <li><button type="button" class="btn btn-light" onclick="downloadFile()">
+                    Télécharger le fichier
+                </button></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Exemple de fichier excel (data non réelle)</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img src="images/exempleFichiers.PNG" alt="exemple-excel">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
+<div class="container-perso">
+    <label>
+        <div class="container-drag">
+            <input type="file" name="excelfile" id="excelfile" accept=".xlsx" hidden>
+            <button type="button" id="demo" class="btn-demo">Cliquez pour une demo !</button>
 
-<table id="exceltable"></table>
+            <div class="drag-drop-zone" id="dropbox">
+                <div class="message">Glissez et déposez les fichiers ici</div>
+                <div class="icon">+</div>
+                <div class="instructions">ou cliquez pour sélectionner les fichiers</div>
+                <div class="file-list">
+                    <p id="displayFileName" class="file-list-item">pas de fichier choisi...</p>
+                </div>
+            </div>
+        </div>
+    </label>
+</div>
+<img class="bottom-right-image" src="images/prise.PNG" alt="Image">
+<br>
+<table id="exceltable" class="table table-hover table-mc-light-blue"></table>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous">
+</script>
 </body>
 <script>
-    document.getElementById('demo').addEventListener('click',() =>{
+    function downloadFile() {
+        fetch('./excelupload/demoAffichage.xslx')
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'demoAffichage.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Erreur lors du téléchargement du fichier :', error);
+            });
+    }
+
+    let dropbox;
+
+    dropbox = document.getElementById("dropbox");
+    dropbox.addEventListener("dragenter", dragenter, false);
+    dropbox.addEventListener("dragover", dragover, false);
+    dropbox.addEventListener("drop", drop, false);
+
+    const inputexcelfile = document.getElementById("excelfile");
+    let displayFileName = document.getElementById('displayFileName');
+
+    inputexcelfile.addEventListener("change", () => {
+        const words = inputexcelfile.value.split('\\');
+        displayFileName.innerHTML = words.pop();
+    });
+
+    function dragenter(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    function dragover(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    function drop(event) {
+        let ul =
+            event.stopPropagation();
+        event.preventDefault();
+
+        const dt = event.dataTransfer;
+        const files = dt.files;
+
+        generatePdf(files[0]);
+    }
+
+    document.getElementById('demo').addEventListener('click', () => {
         fetch('./excelupload/demoAffichage.xlsx')
             .then(response => response.blob())
             .then(blob => {
                 const demoFile = new File([blob], 'demoAffichage.xlsx');
-                console.log(demoFile);
                 generatePdf(demoFile);
             })
             .catch(error => {
@@ -28,7 +146,6 @@
             });
     })
 
-    const inputexcelfile = document.getElementById("excelfile");
     const exceltable = document.getElementById("exceltable");
 
     inputexcelfile.addEventListener('change', () => {
