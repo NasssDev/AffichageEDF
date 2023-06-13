@@ -12,5 +12,9 @@
     <orderEntry type="library" name="exceljs" level="application" />
     <orderEntry type="library" name="read-excel-file" level="application" />
     <orderEntry type="library" name="pdf-lib" level="application" />
+    <orderEntry type="library" name="dropzone" level="application" />
+    <orderEntry type="library" name="bootstrap" level="application" />
+    <orderEntry type="library" name="jquery-3.3.1.slim" level="application" />
+    <orderEntry type="library" name="popper.js" level="application" />
   </component>
 </module>

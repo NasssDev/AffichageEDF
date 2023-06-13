@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="https://unpkg.com/read-excel-file@4.x/bundle/read-excel-file.min.js"
+            defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./CSS/style.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+</head>
+<body>
+
+<nav class="navbar bg-body-tertiary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="images/Affichage-logo.png" alt="Logo" class="d-inline-block align-text-top">
+        </a>
+        <span
+                class="text-black navbar-text" >L'affichage en quelques secondes</span>
+        <div class="dropdown">
+            <a class="btn btn-outline-primary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+               aria-expanded="false">
+                Options demo
+            </a>
+
+            <ul class="dropdown-menu" style="right: 0; left: auto;">
+                <li>
+                    <!-- Button trigger modal -->
+                    <button type="button" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        Visualiser le fichier
+                    </button>
+                </li>
+                <li><button type="button" class="btn btn-light" onclick="downloadFile()">
+                    Télécharger le fichier
+                </button></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Exemple de fichier excel (data non réelle)</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <img src="images/exempleFichiers.PNG" alt="exemple-excel">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-warning" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-perso">
+    <label>
+        <div class="container-drag">
+            <input type="file" name="excelfile" id="excelfile" accept=".xlsx" hidden>
+            <button type="button" id="demo" class="btn-demo">Cliquez pour une demo !</button>
+
+            <div class="drag-drop-zone" id="dropbox">
+                <div class="message">Glissez et déposez les fichiers ici</div>
+                <div class="icon">+</div>
+                <div class="instructions">ou cliquez pour sélectionner les fichiers</div>
+                <div class="file-list">
+                    <p id="displayFileName" class="file-list-item">pas de fichier choisi...</p>
+                </div>
+            </div>
+        </div>
+    </label>
+</div>
+<img class="bottom-right-image" src="images/prise.PNG" alt="Image">
+<br>
+<table id="exceltable" class="table table-hover table-mc-light-blue"></table>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous">
+</script>
+</body>
+<script>
+    function downloadFile() {
+        fetch('./excelupload/demoAffichage.xslx')
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'demoAffichage.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                console.error('Erreur lors du téléchargement du fichier :', error);
+            });
+    }
+
+    let dropbox;
+
+    dropbox = document.getElementById("dropbox");
+    dropbox.addEventListener("dragenter", dragenter, false);
+    dropbox.addEventListener("dragover", dragover, false);
+    dropbox.addEventListener("drop", drop, false);
+
+    const inputexcelfile = document.getElementById("excelfile");
+    let displayFileName = document.getElementById('displayFileName');
+
+    inputexcelfile.addEventListener("change", () => {
+        const words = inputexcelfile.value.split('\\');
+        displayFileName.innerHTML = words.pop();
+    });
+
+    function dragenter(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    function dragover(e) {
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
+    function drop(event) {
+        let ul =
+            event.stopPropagation();
+        event.preventDefault();
+
+        const dt = event.dataTransfer;
+        const files = dt.files;
+
+        generatePdf(files[0]);
+    }
+
+    document.getElementById('demo').addEventListener('click', () => {
+        fetch('./excelupload/demoAffichage.xlsx')
+            .then(response => response.blob())
+            .then(blob => {
+                const demoFile = new File([blob], 'demoAffichage.xlsx');
+                generatePdf(demoFile);
+            })
+            .catch(error => {
+                console.error('Erreur lors du chargement du fichier Excel :', error);
+            });
+    })
+
+    const exceltable = document.getElementById("exceltable");
+
+    inputexcelfile.addEventListener('change', () => {
+        generatePdf(inputexcelfile.files[0])
+    })
+    const generatePdf = (fileToRead) => {
+
+        let allInputsToFill = {};
+        exceltable.innerHTML = "";
+
+        readXlsxFile(fileToRead).then((rows) => {
+
+            const fileOccurrences = {};
+
+            let trEnTete = document.createElement('tr');
+            for (let i = 0; i < 4; i++) {
+                let th = document.createElement('th');
+                th.textContent = rows[0][i];
+                trEnTete.appendChild(th);
+            }
+            exceltable.appendChild(trEnTete);
+
+            // je retire la première occurence qui ne sont que les en-têtes du excel
+            rows.shift();
+
+            rows.forEach(([fileName, adminName, timeToStart, timeToFinish]) => {
+                let tr = document.createElement('tr');
+
+                let ADMINAME;
+                let CONTACT;
+                let HORAIRE;
+
+                // je retire tout ce qui ne m'intéresse pas dans la string fileName
+                const regex = /CAP AMPERE-MUT-(.{7})/;
+                let goodName = regex.exec(fileName);
+
+                fileName = goodName[1]; // fileName represente en faite le nom de salle
+
+                // appendChild du nom de salle
+                const tdFileName = document.createElement('td');
+                tdFileName.textContent = fileName;
+                tr.appendChild(tdFileName);
+                //
+
+                // appendChild du nom sans le modifier (pas d'intérêt de le modifier ici)
+                const tdAdminName = document.createElement('td');
+                tdAdminName.textContent = adminName;
+                tr.appendChild(tdAdminName);
+                //
+
+                // je retire ce qui n'est pas utile dans la string adminName
+                if (adminName.includes(" - externe")) adminName = adminName.replace(" - externe", "");
+                // je fais un saut de ligne entre le nom et le prenom
+                if (adminName.includes(" ")) adminName = adminName.replace(" ", "\n");
+
+                // je vérifie si c'est heure d'été ou hiver (problème de formatage avec excel)
+                let offset = timeToStart.getTimezoneOffset();
+                offset === -60 ? timeToStart.setHours(timeToStart.getHours() + 11) : timeToStart.setHours(timeToStart.getHours() + 10);
+                offset = timeToFinish.getTimezoneOffset();
+                offset === -60 ? timeToFinish.setHours(timeToFinish.getHours() + 11) : timeToFinish.setHours(timeToFinish.getHours() + 10);
+
+                // je formatte l'heure comme il faut
+                const timeBegin = timeToStart.getHours().toString().padStart(2, "0") + ":" + timeToStart.getMinutes().toString().padStart(2, "0")
+                const timeEnd = timeToFinish.getHours().toString().padStart(2, "0") + ":" + timeToFinish.getMinutes().toString().padStart(2, "0")
+
+                // appendChild de l'heure de départ
+                const tdTimeBegin = document.createElement('td');
+                tdTimeBegin.textContent = timeBegin;
+                tr.appendChild(tdTimeBegin);
+                //
+
+                // appendChild de l'heure de fin
+                const tdTimeEnd = document.createElement('td');
+                tdTimeEnd.textContent = timeEnd;
+                tr.appendChild(tdTimeEnd);
+                //
+
+                // je récupère simplement le jour et le mois dans le format FR
+                const dateOfMeeting = timeToStart.toLocaleDateString("fr-FR", {month: "2-digit", day: "2-digit"})
+                // je vérifie si le fichier PDF existe déjà dans les occurrences
+                if (fileOccurrences[fileName]) {
+                    // Le fichier existe déjà, j'utilise le compteur actuel pour incrémenter les champs
+                    ADMINAME = `NOM_PRENOM${fileOccurrences[fileName]}`;
+                    CONTACT = `CONTACT${fileOccurrences[fileName]}`;
+                    HORAIRE = `HORAIRE${fileOccurrences[fileName]}`;
+
+                    allInputsToFill[fileName][ADMINAME] = adminName;
+                    allInputsToFill[fileName][CONTACT] = adminName;
+                    allInputsToFill[fileName][HORAIRE] = timeBegin + "\n" + timeEnd;
+                    fileOccurrences[fileName]++; // j'incrémente le compteur pour la prochaine occurrence
+                } else {
+                    allInputsToFill[fileName] = {};
+                    allInputsToFill[fileName]["DATE1"] = dateOfMeeting;
+                    allInputsToFill[fileName]["NOM_PRENOM1"] = adminName;
+                    allInputsToFill[fileName]["CONTACT1"] = adminName;
+                    allInputsToFill[fileName]["HORAIRE1"] = timeBegin + "\n" + timeEnd;
+
+                    // je définis le compteur à 2 pour la prochaine occurrence
+                    fileOccurrences[fileName] = 2;
+                }
+                exceltable.appendChild(tr);
+            });
+
+            fetch('/.netlify/functions/pdf-gen', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(allInputsToFill)
+            })
+                .then(response => response.blob())
+                .then(blob => {
+                    const fileURL = URL.createObjectURL(blob);
+                    window.open(fileURL);
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        })
+    }
+
+</script>
+</html>
